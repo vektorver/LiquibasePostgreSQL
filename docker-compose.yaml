@@ -1,0 +1,38 @@
+services:
+
+  db:
+    build:
+      context: ./db
+      dockerfile: Dockerfile
+    hostname: postgres
+    ports:
+      - '7000:5432'
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      DATABASE_URL: postgresql+asyncpg://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_DATABASE}
+    restart: on-failure
+    networks:
+      - my_network
+
+  migrations:
+    container_name: migrations
+    build:
+      context: ./migrations
+      dockerfile: Dockerfile
+    volumes:
+      - ./migrations:/migrations
+    environment:
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+    depends_on:
+      - db
+    networks:
+      - my_network
+
+networks:
+  my_network:
+    external: true
+    name: test_network
